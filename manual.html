@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual de uso · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <style>
+    :root { --green: #8bb443; --green-d: #4f8a1d; --magenta: #da1274; --orange: #f29a12; --gray: #535353; --ink: #222; --muted: #666; --line: #e2e2e2; --soft: #f6f8f3; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink); background: #fff; line-height: 1.6; font-size: 15px; }
+    header.top { display: flex; gap: 16px; align-items: center; padding: 14px 24px; border-bottom: 5px solid transparent;
+      border-image: linear-gradient(90deg, var(--orange) 0 33%, var(--green) 33% 66%, var(--magenta) 66% 100%) 1; }
+    header.top img { width: 74px; height: 74px; object-fit: contain; }
+    header.top .t { flex: 1; }
+    header.top h1 { margin: 0; font-size: 26px; color: var(--green-d); }
+    header.top p { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; }
+    header.top .act a, header.top .act button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--green-d); background: var(--green-d); color: #fff; text-decoration: none; cursor: pointer; margin-left: 6px; }
+    header.top .act a.sec { background: #fff; color: var(--green-d); }
+    .wrap { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; }
+    nav.toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow: auto; padding: 18px 14px; border-right: 1px solid var(--line); font-size: 13.5px; }
+    nav.toc b { display: block; color: var(--gray); margin-bottom: 6px; }
+    nav.toc ol { margin: 0; padding-left: 20px; }
+    nav.toc a { color: var(--ink); text-decoration: none; }
+    nav.toc a:hover { color: var(--magenta); }
+    main { padding: 10px 32px 40px; min-width: 0; }
+    h2 { color: var(--green-d); font-size: 22px; margin: 34px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--soft); scroll-margin-top: 10px; }
+    h3 { color: var(--gray); font-size: 17px; margin: 22px 0 6px; }
+    .lead { font-size: 16px; color: #333; }
+    .credit { display: flex; gap: 14px; align-items: center; background: var(--soft); border: 1px solid #e0e6d6; border-radius: 10px; padding: 12px 16px; margin: 16px 0; }
+    .credit img { width: 56px; height: 56px; object-fit: contain; }
+    .note, .tip, .warn { border-radius: 6px; padding: 10px 14px; margin: 12px 0; font-size: 14px; }
+    .note { background: #f3f7fb; border-left: 4px solid #6b8fb3; }
+    .tip { background: #f4f9ec; border-left: 4px solid var(--green); }
+    .warn { background: #fff6e8; border-left: 4px solid var(--orange); }
+    .note b:first-child, .tip b:first-child, .warn b:first-child { display: block; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
+    th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: var(--soft); color: #333; }
+    .steps { counter-reset: s; list-style: none; padding: 0; }
+    .steps > li { counter-increment: s; position: relative; padding: 10px 12px 10px 52px; margin: 8px 0; border: 1px solid var(--line); border-radius: 8px; }
+    .steps > li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--green-d); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    .steps > li b.h { display: block; font-size: 15.5px; }
+    kbd { font-family: inherit; font-size: 12.5px; border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: #fafafa; }
+    .pill { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12.5px; font-weight: 600; }
+    .p-ok { background: #e7f4dc; color: #2e6b12; } .p-warn { background: #fdf0d9; color: #9a5b00; } .p-err { background: #fde3ee; color: #a00b55; }
+    .mock { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fcfcfc; display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: center; }
+    .ring { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--green) 82%, #e5e5e5 0); }
+    .ring div { width: 74px; height: 74px; border-radius: 50%; background: #fff; display: grid; place-content: center; text-align: center; font-weight: 700; color: var(--green-d); font-size: 22px; }
+    dl.glos dt { font-weight: 700; color: var(--gray); margin-top: 8px; }
+    dl.glos dd { margin: 0 0 0 14px; }
+    footer.foot { display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--line); padding: 14px 24px; color: var(--muted); font-size: 12.5px; }
+    footer.foot img { width: 40px; height: 40px; object-fit: contain; }
+    @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } nav.toc { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); } main { padding: 10px 16px 30px; } header.top { flex-wrap: wrap; padding: 12px 16px; } }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .act, nav.toc { display: none !important; }
+      .wrap { display: block; }
+      main { padding: 0; }
+      h2 { break-after: avoid; } .steps > li, table, .note, .tip, .warn, .mock { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <img src="img/areandina.png" alt="Areandina">
+    <div class="t">
+      <h1>Manual de uso de OpenTC Sim</h1>
+      <p>Simulador educativo de tomografía computarizada · Laboratorios de Salud y Deporte Bogotá · Facultad de Ciencias de la Salud y del Deporte · Fundación Universitaria del Área Andina</p>
+    </div>
+    <div class="act"><button onclick="window.print()">Imprimir / PDF</button><a class="sec" href="index.html">Abrir el simulador</a></div>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="Contenido">
+      <b>Contenido</b>
+      <ol>
+        <li><a href="#presentacion">Presentación</a></li>
+        <li><a href="#requisitos">Requisitos y acceso</a></li>
+        <li><a href="#inicio">Primeros pasos</a></li>
+        <li><a href="#flujo">El examen paso a paso</a></li>
+        <li><a href="#visor">El visor de imágenes</a></li>
+        <li><a href="#casos">Tipos de casos</a></li>
+        <li><a href="#informe">Cómo leer el informe</a></li>
+        <li><a href="#aprender">Herramientas de aprendizaje</a></li>
+        <li><a href="#docente">Guía para el docente</a></li>
+        <li><a href="#ajustes">Ajustes</a></li>
+        <li><a href="#teclado">Teclado y accesibilidad</a></li>
+        <li><a href="#problemas">Solución de problemas</a></li>
+        <li><a href="#glosario">Glosario</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section id="presentacion">
+        <h2>1. Presentación</h2>
+        <p class="lead">OpenTC Sim es un simulador de tomografía computarizada (TC) para estudiantes de radiología e imágenes diagnósticas. El estudiante hace el trabajo del tecnólogo, desde que recibe la orden médica hasta que envía las imágenes y despacha al paciente. Al terminar recibe un informe con su nota y con lo que debe mejorar.</p>
+        <div class="credit"><img src="img/areandina.png" alt="Areandina"><div><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte.</b><br>Fundación Universitaria del Área Andina.</div></div>
+        <p>Qué se puede practicar:</p>
+        <ul>
+          <li>Seguridad del paciente: identificación, valoración previa, decisión sobre el contraste y retiro de objetos metálicos.</li>
+          <li>Posicionamiento en una sala 3D, láseres, centrado e isocentro.</li>
+          <li>Topograma, rango de exploración y elección del protocolo y de sus parámetros (kV, mAs, pitch, colimación, grosor, filtro).</li>
+          <li>Medio de contraste: inyector, catéter, fases y seguimiento del bolo.</li>
+          <li>Adquisición, eventos del paciente, dosis (CTDIvol, DLP, SSDE) y niveles de referencia.</li>
+          <li>Lectura de las imágenes, reconstrucciones, artefactos y su corrección.</li>
+        </ul>
+        <div class="warn"><b>Uso exclusivamente educativo</b>Los pacientes y la anatomía son ficticios y la física está simplificada. OpenTC Sim no es un dispositivo médico y no debe usarse para decisiones clínicas.</div>
+      </section>
+
+      <section id="requisitos">
+        <h2>2. Requisitos y acceso</h2>
+        <table>
+          <tr><th>Elemento</th><th>Recomendación</th></tr>
+          <tr><td>Navegador</td><td>Chrome, Edge o Firefox actualizados. Con Chrome o Edge se aprovecha la tarjeta gráfica (WebGPU) y la reconstrucción es más rápida.</td></tr>
+          <tr><td>Equipo</td><td>Computador o tableta con al menos 4 GB de memoria. En la tableta funciona con el dedo (gestos de pellizco para el zoom).</td></tr>
+          <tr><td>Instalación</td><td>No requiere instalación. Puede «instalarse» como aplicación desde el navegador y, tras la primera visita, funciona sin conexión.</td></tr>
+          <tr><td>Idioma</td><td>Español, inglés y portugués (selector en la barra superior).</td></tr>
+          <tr><td>Servidor de clase</td><td>Opcional. Permite enviar las notas al docente y ver el progreso en vivo (sección <a href="#docente">9</a>).</td></tr>
+        </table>
+      </section>
+
+      <section id="inicio">
+        <h2>3. Primeros pasos</h2>
+        <p>Al abrir el simulador aparece el <b>diálogo de inicio</b>:</p>
+        <ol>
+          <li>Escriba su <b>nombre</b>: aparece en el informe y en el certificado.</li>
+          <li>Elija el <b>modo</b>:
+            <ul>
+              <li><span class="pill p-ok">Práctica guiada</span>: el panel «Guía» muestra pistas y, tras cada evento, una explicación.</li>
+              <li><span class="pill p-warn">Evaluación</span>: sin pistas, con nota.</li>
+            </ul></li>
+          <li>Si es su primera vez, pulse <b>▶ Tutorial guiado</b>: un TC de cráneo explicado paso a paso.</li>
+          <li>Elija un caso y pulse <b>Empezar</b>. Si su docente le dio un <b>código de clase</b>, escríbalo antes de empezar.</li>
+        </ol>
+        <div class="tip"><b>Consejo</b>En la barra superior están <b>Ajustes</b>, <b>Tutorial</b>, <b>Nuevo caso</b>, <b>Manual</b> y el <b>Panel docente</b>. El panel derecho muestra siempre la guía, la dosis acumulada y el registro de lo que va haciendo.</div>
+      </section>
+
+      <section id="flujo">
+        <h2>4. El examen paso a paso</h2>
+        <p>Los ocho pasos aparecen a la izquierda (o arriba, en pantallas pequeñas). Se marcan en verde al completarse. Puede volver a un paso anterior en cualquier momento.</p>
+        <ol class="steps">
+          <li><b class="h">Paciente</b>Lea la orden médica. Pulse «Preguntar al paciente» y compare el nombre y la fecha de nacimiento con el brazalete (dos identificadores). Revise la historia y los laboratorios (creatinina, función renal, alergias, metformina, embarazo). Decida sobre el contraste: apto, no requiere o <i>suspender y consultar al radiólogo</i>. Elija el catéter y decida si el acompañante sale o se queda con delantal plomado.</li>
+          <li><b class="h">Sala y posición</b>En la sala 3D coloque al paciente: cabeza o pies primero, brazos (sobre la cabeza en tórax y abdomen; a los lados en cráneo y cuello), soporte y cinta para la cabeza, instrucciones respiratorias y protectores. Retire los objetos metálicos. Encienda los láseres, ajuste la altura de la mesa para que el láser coronal quede en la línea medioaxilar, marque el cero en el reparo y lleve al paciente al isocentro.</li>
+          <li><b class="h">Topograma y rango</b>Adquiera el topograma (AP o lateral) con un inicio y una longitud adecuados. Arrastre las líneas para ajustar el rango a la anatomía que pide la orden: explorar de más aumenta el DLP.</li>
+          <li><b class="h">Protocolo</b>Cargue el protocolo y revise los parámetros. Las métricas (CTDIvol, DLP, SSDE, ruido esperado y tiempo) se actualizan en vivo y se comparan con los niveles de referencia.</li>
+          <li><b class="h">Contraste</b>Programe el inyector (volumen, caudal, concentración y bolo de suero) sin superar el caudal máximo del catéter. Elija el disparo de cada fase: retraso fijo o seguimiento del bolo con la ROI en el vaso correcto. Las curvas muestran el realce previsto.</li>
+          <li><b class="h">Adquisición</b>Revise la lista «Antes de empezar» y pulse <b>Iniciar adquisición</b>. Pueden ocurrir eventos (calor, náuseas, urticaria, ansiedad): elija la conducta correcta. El botón <b>Calibración en aire del detector</b> corrige los anillos de un detector descalibrado.</li>
+          <li><b class="h">Visor</b>Revise las imágenes en las ventanas adecuadas, mida con ROI y distancia, y use las reconstrucciones (sección <a href="#visor">5</a>).</li>
+          <li><b class="h">Finalizar</b>Responda la pregunta sobre las imágenes, envíe al PACS y complete el despacho (hidratación y vigilancia si hubo contraste). Pulse <b>Finalizar y ver informe</b>.</li>
+        </ol>
+        <div class="warn"><b>Errores frecuentes</b>Inyectar con una contraindicación, olvidar el metal en el campo, brazos a los lados en tórax o abdomen, paciente fuera del isocentro, rango demasiado largo, fase arterial adquirida tarde y no revisar los cristalinos en el TC de cráneo.</div>
+      </section>
+
+      <section id="visor">
+        <h2>5. El visor de imágenes</h2>
+        <table>
+          <tr><th>Función</th><th>Cómo se usa</th></tr>
+          <tr><td>Vistas</td><td>Axial, coronal, sagital, oblicua, curva (enderezada) y 3D (MIP y renderizado de volumen).</td></tr>
+          <tr><td>Ventanas</td><td>Cerebro, subdural, partes blandas, hígado, angio, pulmón y hueso. Arrastrar con el ratón cambia la ventana y el nivel.</td></tr>
+          <tr><td>Herramientas</td><td>Ventana, ROI (media y desviación estándar en HU), distancia, cortes, plano oblicuo y trayecto para la vista curva.</td></tr>
+          <tr><td>Navegación</td><td>Rueda: cortes. <kbd>Ctrl</kbd> + rueda: zoom. Doble clic: restablecer.</td></tr>
+          <tr><td>Reconstruir desde los datos brutos</td><td>Cambie el filtro, el grosor, el DFOV, la reconstrucción iterativa, la reducción de metal (MAR) o el algoritmo (<b>FBP</b> o <b>SART iterativa</b>) sin volver a irradiar al paciente.</td></tr>
+          <tr><td>Otras funciones</td><td>Doble energía (VMI, mapa de yodo, sin contraste virtual), fase cardíaca en estudios sincronizados con el ECG, puntuación de calcio de Agatston y exportación DICOM.</td></tr>
+        </table>
+        <div class="tip"><b>Recuerde</b>La derecha del paciente se ve a la izquierda de la imagen axial. Antes de repetir una adquisición, pregúntese si basta con reconstruir desde los datos brutos: así no hay dosis adicional.</div>
+      </section>
+
+      <section id="casos">
+        <h2>6. Tipos de casos</h2>
+        <h3>Casos clínicos</h3>
+        <p>Quince casos: hemorragia cerebral, TEP, hígado trifásico, urolitiasis, contraindicación de contraste, nódulo pulmonar, disección aórtica, absceso cervical, trauma, prótesis de cadera, coronario, código ictus con perfusión, pediátrico, embarazada y paciente con obesidad.</p>
+        <h3>Casos aleatorios</h3>
+        <p>Hígado, pulmón, litiasis, hemorragia y TEP con paciente, lado y tamaño de la lesión distintos cada vez. El número del caso (por ejemplo <code>rand-higado-53477</code>) permite repetir exactamente el mismo.</p>
+        <h3>Casos de artefactos</h3>
+        <p>El paciente ya está escaneado y la serie «Original» tiene un artefacto. Identifíquelo, corrija la causa y repita solo si hace falta.</p>
+        <table>
+          <tr><th>Artefacto</th><th>Corrección</th></tr>
+          <tr><td>Movimiento respiratorio</td><td>Instrucciones respiratorias y una adquisición más corta que la apnea.</td></tr>
+          <tr><td>Metal</td><td>Reducción de artefactos metálicos (MAR) y kV más alto.</td></tr>
+          <tr><td>Brazos en el campo</td><td>Brazos sobre la cabeza.</td></tr>
+          <tr><td>Truncamiento</td><td>SFOV de cuerpo y DFOV que incluya toda la piel.</td></tr>
+          <tr><td>Escalera en las MPR</td><td>Reconstruir cortes finos desde los datos brutos (sin repetir).</td></tr>
+          <tr><td>Ruido excesivo</td><td>Más mAs o modulación de corriente (ATCM), considerando la dosis.</td></tr>
+          <tr><td>Anillos</td><td>Calibración en aire del detector y repetición.</td></tr>
+        </table>
+        <h3>Biopsia pulmonar guiada por TC</h3>
+        <p>En «Procedimientos»:</p>
+        <ol>
+          <li>Marque la entrada en la piel y el objetivo, y revise el análisis de la trayectoria.</li>
+          <li>Avance la aguja por pasos, haciendo cortes de control y corrigiendo la dirección.</li>
+          <li>Tome la muestra.</li>
+          <li>En el control final, vigile si hay neumotórax.</li>
+        </ol>
+        <h3>Turno en el servicio</h3>
+        <p>Una lista de trabajo con pacientes de prioridad inmediata, urgente o programada que llegan durante la jornada. Usted decide el orden. Se puntúan la calidad de cada estudio (60 %), el orden de prioridad (25 %) y los tiempos de espera (15 %).</p>
+      </section>
+
+      <section id="informe">
+        <h2>7. Cómo leer el informe de evaluación</h2>
+        <p>Al pulsar <b>Finalizar y ver informe</b> aparece el informe con el logo institucional:</p>
+        <div class="mock"><div class="ring"><div>82%</div></div><div><b style="color:var(--green-d);font-size:17px">✓ Aprobado</b><br>Completó 7 de 9 criterios. Donde más puntos perdió: «Rango de exploración» (−6 puntos).<br><span style="color:var(--muted);font-size:13px">Estudiante · Caso · Fecha · Tiempo · Modo · DLP total</span></div></div>
+        <table>
+          <tr><th>Parte</th><th>Qué significa</th></tr>
+          <tr><td>Anillo de puntuación</td><td>Porcentaje de puntos obtenidos y puntos sobre el máximo.</td></tr>
+          <tr><td>Veredicto</td><td><span class="pill p-ok">Excelente</span> ≥ 90 % · <span class="pill p-ok">Aprobado</span> ≥ 75 % · <span class="pill p-warn">Aprobado con observaciones</span> ≥ 60 % · <span class="pill p-err">No aprobado</span> &lt; 60 %: repita el caso.</td></tr>
+          <tr><td>Lo que hizo bien</td><td>Criterios en los que obtuvo todos los puntos.</td></tr>
+          <tr><td>Qué mejorar, por prioridad</td><td>Criterios incompletos, ordenados de mayor a menor pérdida de puntos y con el motivo. <b>Empiece por el primero.</b></td></tr>
+          <tr><td>Detalle por criterio</td><td>Barra de logro para cada criterio: ✓ verde completo, ! naranja parcial y ✗ rojo sin puntos.</td></tr>
+          <tr><td>Series y dosis</td><td>Técnica, CTDIvol y DLP de cada serie (desplegable).</td></tr>
+          <tr><td>Aprendizaje clave</td><td>Explicación del hallazgo y de la técnica correcta para el caso.</td></tr>
+        </table>
+        <p>Botones del informe:</p>
+        <ul>
+          <li><b>Imprimir / PDF</b>: genera el informe en A4. Incluye el encabezado de la Fundación Universitaria del Área Andina, los datos del estudiante, la rúbrica con barras, las series y la dosis, un espacio para observaciones del docente y las firmas del estudiante y del docente. Para guardarlo como PDF, elija «Guardar como PDF» en el diálogo de impresión.</li>
+          <li><b>JSON y CSV</b>: guardan el informe para el docente o para una hoja de cálculo.</li>
+        </ul>
+        <p>Al final del informe hay un enlace con cinco preguntas teóricas relacionadas con el caso.</p>
+      </section>
+
+      <section id="aprender">
+        <h2>8. Herramientas de aprendizaje</h2>
+        <h3>Banco de preguntas</h3>
+        <p>Cuarenta preguntas de física, dosimetría, protección radiológica, contraste, protocolos, artefactos y seguridad, cada una con su explicación. Puede filtrarlas por tema y repasar solo las falladas.</p>
+        <h3>Atlas anatómico</h3>
+        <p>Muestra la anatomía del simulador en cortes axial, coronal y sagital sincronizados, coloreados por sistema, para cinco tipos de paciente. Pase el ratón para ver el nombre y las HU de cada estructura y haga clic para seleccionarla. En el modo «Preguntas» se identifica la estructura marcada.</p>
+        <h3>ECOE (evaluación por estaciones)</h3>
+        <p>El docente comparte un enlace con varias estaciones cronometradas. Al agotarse el tiempo, la estación cuenta 0. Al final se genera un certificado imprimible con un código de verificación.</p>
+      </section>
+
+      <section id="docente">
+        <h2>9. Guía para el docente</h2>
+        <table>
+          <tr><th>Necesidad</th><th>Cómo hacerlo</th></tr>
+          <tr><td>Recibir las notas de un grupo</td><td>Inicie el servidor (<code>node server.mjs 8080</code>) en un equipo de la red. En <b>Panel docente</b> cree una clase con un PIN y comparta el código de seis letras. Sin servidor, los estudiantes descargan el JSON y usted lo arrastra al panel.</td></tr>
+          <tr><td>Ver el progreso en vivo</td><td>Con la clase abierta en el panel, la tabla <b>En vivo</b> muestra el paso, la dosis, los avisos y la nota de cada estudiante. Se actualiza cada 5 s.</td></tr>
+          <tr><td>Evaluación por estaciones</td><td>En <b>ecoe.html</b> elija las estaciones, los tiempos, el cuestionario y las notas mínimas, y comparta el enlace generado. Los certificados se verifican en la misma página.</td></tr>
+          <tr><td>Casos propios</td><td>En el <b>Editor de casos</b> defina el paciente, la orden, las lesiones y la pregunta. Exporte el JSON y compártalo; los estudiantes lo importan en el diálogo de inicio.</td></tr>
+          <tr><td>Enlaces directos</td><td><code>index.html?case=angio-tep&amp;mode=evaluacion&amp;student=Nombre&amp;class=ABC234</code>; <code>?turno=5</code> abre un turno.</td></tr>
+          <tr><td>Plataforma virtual</td><td>Paquetes SCORM 1.2 y 2004 (<code>npm run build:scorm</code>) y analítica xAPI hacia un LRS (en <b>Ajustes</b>).</td></tr>
+          <tr><td>Equipo real del laboratorio</td><td>En <b>calibracion.html</b>, ajuste el ruido y la dosis del simulador a las medidas de su tomógrafo.</td></tr>
+          <tr><td>PACS de docencia</td><td>Con <code>OPENTC_PACS_URL</code> (por ejemplo, un Orthanc), «Enviar al PACS» envía las series por DICOMweb.</td></tr>
+        </table>
+      </section>
+
+      <section id="ajustes">
+        <h2>10. Ajustes</h2>
+        <ul>
+          <li><b>Voz</b>: instrucciones habladas al paciente («inspire y no respire», avisos del contraste).</li>
+          <li><b>Física de la simulación</b>: la física avanzada simula el espectro policromático, el haz en abanico y la dispersión, con modos didácticos sin corrección. Es más realista, pero unas dos veces más lenta, y las HU pueden variar unos ±10 HU.</li>
+          <li><b>Analítica xAPI</b>: dirección y credenciales del LRS. Sin LRS, las declaraciones se pueden exportar en JSON.</li>
+          <li><b>PACS</b>: muestra si el servidor tiene un PACS configurado.</li>
+        </ul>
+      </section>
+
+      <section id="teclado">
+        <h2>11. Teclado y accesibilidad</h2>
+        <table>
+          <tr><th>Tecla (con el visor seleccionado)</th><th>Acción</th></tr>
+          <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>Corte anterior o siguiente.</td></tr>
+          <tr><td><kbd>RePág</kbd> <kbd>AvPág</kbd></td><td>Avanzar o retroceder cinco cortes.</td></tr>
+          <tr><td><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd></td><td>Acercar, alejar y restablecer el zoom.</td></tr>
+          <tr><td><kbd>Tab</kbd></td><td>Recorrer los controles (el foco es visible). El enlace «Saltar al contenido» aparece con la primera pulsación.</td></tr>
+        </table>
+        <p>Los mapas de perfusión ofrecen la paleta <i>viridis</i>, apta para personas con daltonismo. El sistema respeta la preferencia de «reducir movimiento».</p>
+      </section>
+
+      <section id="problemas">
+        <h2>12. Solución de problemas</h2>
+        <table>
+          <tr><th>Problema</th><th>Qué hacer</th></tr>
+          <tr><td>La adquisición o la reconstrucción tarda mucho</td><td>Use Chrome o Edge (GPU). Cierre otras pestañas. La física avanzada y SART solo usan la CPU: desactívelas si el equipo es lento.</td></tr>
+          <tr><td>«No se encontró esa clase»</td><td>Revise el código o deje el campo vacío para practicar sin enviar resultados. El servidor debe estar encendido y en la misma red.</td></tr>
+          <tr><td>No se oye la voz</td><td>Active la voz en Ajustes y revise el volumen. Algunos navegadores no tienen voces instaladas en el idioma elegido.</td></tr>
+          <tr><td>El informe no se imprime con el logo</td><td>Use <b>Imprimir / PDF</b> del informe (no el menú del navegador) y active «Gráficos de fondo» si las barras salen en blanco.</td></tr>
+          <tr><td>Veo una versión antigua</td><td>Recargue la página con <kbd>Ctrl</kbd> + <kbd>F5</kbd>: la aplicación guarda una copia para trabajar sin conexión.</td></tr>
+          <tr><td>Perdí mi historial</td><td>El historial se guarda en el navegador. Borrar los datos del sitio o usar el modo incógnito lo elimina. Descargue el JSON de los informes importantes.</td></tr>
+        </table>
+      </section>
+
+      <section id="glosario">
+        <h2>13. Glosario</h2>
+        <dl class="glos">
+          <dt>HU (unidades Hounsfield)</dt><dd>Escala de atenuación: agua = 0, aire = −1000.</dd>
+          <dt>CTDIvol</dt><dd>Dosis media en un maniquí de referencia según la técnica (mGy). Describe la técnica, no la dosis del paciente.</dd>
+          <dt>DLP</dt><dd>CTDIvol × longitud explorada (mGy·cm). La dosis efectiva se estima como DLP × k.</dd>
+          <dt>SSDE</dt><dd>Dosis corregida según el tamaño del paciente.</dd>
+          <dt>NRD</dt><dd>Niveles de referencia diagnósticos: valores orientativos para optimizar la dosis, no límites.</dd>
+          <dt>Pitch</dt><dd>Avance de la mesa por rotación dividido por la anchura del haz.</dd>
+          <dt>SFOV / DFOV</dt><dd>Campo de medida (cabeza 300 mm, cuerpo 500 mm) y campo de visualización de la imagen reconstruida.</dd>
+          <dt>Filtro (kernel)</dt><dd>Blando: menos ruido. Duro (hueso o pulmón): más nitidez y más ruido.</dd>
+          <dt>ATCM</dt><dd>Modulación automática de la corriente según la atenuación del paciente.</dd>
+          <dt>FBP / SART</dt><dd>Retroproyección filtrada (rápida) y reconstrucción algebraica iterativa (menos ruido, más lenta).</dd>
+          <dt>MAR</dt><dd>Reducción de artefactos metálicos.</dd>
+          <dt>Seguimiento del bolo</dt><dd>Cortes de baja dosis sobre un vaso que disparan la adquisición al alcanzar un umbral de HU.</dd>
+        </dl>
+      </section>
+    </main>
+  </div>
+
+  <footer class="foot"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b> · Fundación Universitaria del Área Andina · OpenTC Sim (licencia MIT). Simulador educativo: no es un dispositivo médico.</span></footer>
+</body>
+</html>

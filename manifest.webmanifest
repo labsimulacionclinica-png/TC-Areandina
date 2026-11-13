@@ -1,0 +1,15 @@
+{
+  "name": "OpenTC Sim",
+  "short_name": "OpenTC",
+  "description": "Simulador educativo de tomografía computarizada, libre y gratuito. Laboratorios de Salud y Deporte Bogotá, Areandina.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1418",
+  "theme_color": "#0a0f12",
+  "icons": [
+    { "src": "img/areandina.png", "sizes": "447x447", "type": "image/png", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

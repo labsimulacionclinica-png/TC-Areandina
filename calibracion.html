@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calibración con el tomógrafo · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <style>
+    body { overflow: auto; }
+    .cal { max-width: 1100px; margin: 0 auto; padding: 8px; display: grid; gap: 8px; }
+    .cal table { width: 100%; border-collapse: collapse; }
+    .cal th, .cal td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: left; }
+    .cal input[type=number] { width: 90px; }
+    .cal .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .ok { color: var(--ok); } .warn { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>calibración con un tomógrafo real</small></div>
+    <div class="patient-strip" id="status"></div>
+    <a class="toplink" href="docs/validacion/01-protocolo-calibracion.md">Protocolo de medición</a>
+    <a class="toplink" href="index.html">Volver al simulador</a>
+  </header>
+  <main class="cal">
+    <section class="panel">
+      <h2>1. Equipo</h2>
+      <p class="small">Mida en el maniquí de agua del control de calidad de su tomógrafo (siga el protocolo de medición) y escriba aquí los resultados. El perfil se guarda en este navegador y se puede exportar para usarlo en toda la sala de informática.</p>
+      <div class="row"><label class="muted">Nombre del equipo <input type="text" id="name" maxlength="80" placeholder="Tomógrafo 64 cortes — Hospital X"></label></div>
+    </section>
+    <section class="panel">
+      <h2>2. Ruido en el maniquí de agua</h2>
+      <p class="small">Adquisición axial o helicoidal del maniquí de 32 cm (cuerpo) en el centro del campo; ROI circular de ~20 cm² en el centro; anote la desviación estándar (DE) en HU.</p>
+      <table>
+        <thead><tr><th>Maniquí</th><th>kV</th><th>mAs efectivo</th><th>Grosor (mm)</th><th>Filtro</th><th>DE medida (HU)</th><th>DE simulada</th></tr></thead>
+        <tbody>
+          <tr><td><select id="ph"><option value="body">Cuerpo 32 cm</option><option value="head">Cabeza 20 cm</option></select></td>
+            <td><select id="kv"><option>80</option><option>100</option><option selected>120</option><option>140</option></select></td>
+            <td><input type="number" id="mas" value="200" min="10" max="800"></td>
+            <td><select id="thk"><option>1.25</option><option>2.5</option><option>3</option><option selected>5</option></select></td>
+            <td><select id="kernel"><option value="standard">Estándar</option><option value="soft">Blando</option></select></td>
+            <td><input type="number" id="sdMeas" step="0.1" min="0.5" max="200" placeholder="p. ej. 9.8"></td>
+            <td class="num" id="sdSim">—</td></tr>
+        </tbody>
+      </table>
+      <div class="row"><button id="btnSim">Simular con el perfil actual</button><span class="small" id="noiseMsg"></span></div>
+    </section>
+    <section class="panel">
+      <h2>3. CTDIw por 100 mAs</h2>
+      <p class="small">Del manual del equipo, del informe de dosis o de la medición con cámara de ionización (CTDI<sub>w</sub> normalizado a 100 mAs, en mGy). Deje vacío lo que no tenga: se usan los valores típicos.</p>
+      <table><thead><tr><th>Maniquí</th><th>80 kV</th><th>100 kV</th><th>120 kV</th><th>140 kV</th></tr></thead><tbody id="ctdiRows"></tbody></table>
+    </section>
+    <section class="panel">
+      <h2>4. Guardar</h2>
+      <div class="row"><button class="primary" id="btnSave">Calcular y guardar el perfil</button><button id="btnReset">Volver a los valores típicos</button><button id="btnExport">Exportar perfil (JSON)</button><label class="t-drop" style="padding:6px 10px"><input type="file" id="importFile" accept=".json" hidden>Importar perfil</label></div>
+      <p class="small" id="saveMsg"></p>
+    </section>
+  </main>
+  <script type="module" src="js/calibration.js"></script>
+  <script type="module">import { initI18n } from './js/i18n.js'; initI18n();</script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>

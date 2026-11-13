@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuesta de usabilidad · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <style>
+    body { overflow: auto; }
+    .sus { max-width: 860px; margin: 0 auto; padding: 8px; }
+    .q { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed #22313a; }
+    .scale { display: flex; gap: 6px; }
+    .scale label { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--muted); }
+    .big { font-size: 40px; font-weight: 700; color: var(--accent); }
+    @media (max-width: 640px) { .q { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>encuesta de usabilidad (SUS)</small></div>
+    <div class="patient-strip">Anónima: use el código que le dio su docente.</div>
+    <a class="toplink" href="index.html">Volver al simulador</a>
+  </header>
+  <main class="sus">
+    <form class="panel" id="form">
+      <h2>Escala de usabilidad del sistema</h2>
+      <p class="small">1 = totalmente en desacuerdo · 5 = totalmente de acuerdo</p>
+      <div class="row"><label class="muted">Código del estudiante <input type="text" id="code" maxlength="20" required placeholder="EST-01"></label></div>
+      <div id="items"></div>
+      <div class="row"><label class="muted" style="flex:1">Comentarios (opcional) <textarea id="comment" maxlength="600" style="width:100%;min-height:60px;background:#0f171c;color:var(--text);border:1px solid var(--line);border-radius:4px"></textarea></label></div>
+      <div class="row end"><button class="primary">Enviar</button></div>
+    </form>
+    <section class="panel" id="result" hidden>
+      <h2>Resultado</h2>
+      <div class="big" id="score"></div>
+      <p class="small" id="interp"></p>
+    </section>
+    <section class="panel">
+      <h2>Respuestas guardadas en este equipo <small id="count"></small></h2>
+      <p class="small">Para el docente: descargue el CSV al final de la sesión (las respuestas quedan solo en este navegador).</p>
+      <div class="row"><button id="btnCsv">Descargar CSV</button><span class="small" id="avg"></span></div>
+    </section>
+  </main>
+  <script type="module">
+    const Q = [
+      'Creo que me gustaría usar este simulador con frecuencia.',
+      'Encontré el simulador innecesariamente complejo.',
+      'Pensé que el simulador era fácil de usar.',
+      'Creo que necesitaría el apoyo de un técnico para poder usar este simulador.',
+      'Encontré que las distintas funciones del simulador estaban bien integradas.',
+      'Pensé que había demasiada inconsistencia en el simulador.',
+      'Imagino que la mayoría de las personas aprenderían a usar este simulador muy rápidamente.',
+      'Encontré el simulador muy engorroso de usar.',
+      'Me sentí muy seguro/a usando el simulador.',
+      'Necesité aprender muchas cosas antes de poder usar el simulador.',
+    ];
+    const KEY = 'opentc-sus';
+    const $ = (id) => document.getElementById(id);
+    $('items').innerHTML = Q.map((q, i) => `<div class="q"><span>${i + 1}. ${q}</span><div class="scale" role="radiogroup" aria-label="Pregunta ${i + 1}">${[1, 2, 3, 4, 5].map((v) => `<label><input type="radio" name="q${i}" value="${v}" required>${v}</label>`).join('')}</div></div>`).join('');
+    const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+    const susScore = (ans) => 2.5 * ans.reduce((s, v, i) => s + (i % 2 === 0 ? v - 1 : 5 - v), 0);
+    function refresh() {
+      const list = load();
+      $('count').textContent = `(${list.length})`;
+      $('avg').textContent = list.length ? `Promedio SUS: ${(list.reduce((s, r) => s + r.score, 0) / list.length).toFixed(1)}` : '';
+    }
+    $('form').onsubmit = (e) => {
+      e.preventDefault();
+      const ans = Q.map((_, i) => +document.querySelector(`input[name=q${i}]:checked`).value);
+      const score = susScore(ans);
+      const list = load();
+      list.push({ code: $('code').value.trim(), date: new Date().toISOString(), answers: ans, score, comment: $('comment').value.trim() });
+      try { localStorage.setItem(KEY, JSON.stringify(list)); } catch { /* sin almacenamiento */ }
+      $('result').hidden = false;
+      $('score').textContent = score.toFixed(1);
+      $('interp').textContent = score >= 80 ? 'Excelente usabilidad.' : score >= 68 ? 'Por encima del promedio.' : score >= 51 ? 'Aceptable, con aspectos a mejorar.' : 'Usabilidad baja: cuéntenos qué le costó en los comentarios.';
+      e.target.reset();
+      refresh();
+    };
+    $('btnCsv').onclick = () => {
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = [['codigo', 'fecha', ...Q.map((_, i) => `p${i + 1}`), 'sus', 'comentario'], ...load().map((r) => [r.code, r.date, ...r.answers, r.score, r.comment])];
+      const url = URL.createObjectURL(new Blob(['﻿' + rows.map((r) => r.map(esc).join(';')).join('\r\n')], { type: 'text/csv' }));
+      const a = document.createElement('a'); a.href = url; a.download = 'opentc-sus.csv'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    refresh();
+  </script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>

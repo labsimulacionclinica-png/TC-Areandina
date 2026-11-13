@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTC Sim</title>
+  <meta name="description" content="Simulador educativo de tomografía computarizada, libre y gratuito.">
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>simulador educativo de TC</small></div>
+    <div class="patient-strip" id="patientStrip">Elija un caso para empezar</div>
+    <span class="badge eval-badge" id="modeBadge" hidden></span>
+    <button id="btnSettings" title="Voz, analítica xAPI y PACS">Ajustes</button>
+    <button id="btnTour">Tutorial</button>
+    <button id="btnNew">Nuevo caso</button>
+    <a class="toplink" href="manual.html" target="_blank" rel="noopener">Manual</a>
+    <a class="toplink" href="teacher.html">Panel docente</a>
+    <a class="skip" href="#main">Saltar al contenido</a>
+  </header>
+
+  <div class="app">
+    <nav class="steps-nav panel" id="stepsNav" aria-label="Pasos del examen"></nav>
+
+    <main class="stage" id="main" tabindex="-1">
+      <!-- 1. Paciente -->
+      <section class="step" data-step="paciente">
+        <div class="cols2">
+          <section class="panel">
+            <h2>Orden médica</h2>
+            <div id="orderCard" class="order"></div>
+            <h2 class="mt">Identificación</h2>
+            <p class="small">Pida al paciente que diga su nombre completo y su fecha de nacimiento y compárelos con el brazalete y la orden.</p>
+            <div class="row"><button id="btnAskId">Preguntar al paciente</button></div>
+            <div id="idCard" class="idcard" hidden></div>
+            <label class="row check"><input type="checkbox" id="chkId" disabled> Los datos coinciden con el brazalete y la orden</label>
+          </section>
+          <section class="panel">
+            <h2>Valoración previa</h2>
+            <div class="row"><button id="btnLabs">Revisar historia clínica y laboratorios</button></div>
+            <div id="labsCard" class="labs" hidden></div>
+            <label class="row check" id="pregRow" hidden><input type="checkbox" id="chkPreg"> Confirmé la prueba de embarazo</label>
+            <div class="subhead">Contraste yodado</div>
+            <div class="seg" id="segContrast">
+              <button data-v="apto">Apto para contraste</button>
+              <button data-v="no">No requiere contraste</button>
+              <button data-v="consultar">Suspender y consultar al radiólogo</button>
+            </div>
+            <label class="row check"><input type="checkbox" id="chkConsent"> Consentimiento informado firmado</label>
+            <div class="row"><label class="muted" for="selCatheter">Acceso venoso</label><select id="selCatheter"></select></div>
+            <div class="subhead">Objetos metálicos (pida que los retire)</div>
+            <ul class="checklist" id="metalList"></ul>
+            <div class="subhead">Acompañante</div>
+            <div class="seg" id="segCompanion">
+              <button data-v="dentro">Se queda en la sala</button>
+              <button data-v="delantal">Se queda con delantal plomado</button>
+              <button data-v="fuera">Sale de la sala</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 2. Sala -->
+      <section class="step" data-step="sala">
+        <div class="room-wrap">
+          <div class="room-canvas" id="roomCanvas"></div>
+          <section class="panel room-panel">
+            <h2>Posicionamiento</h2>
+            <div class="subhead">Orientación</div>
+            <div class="seg" id="segOrient"><button data-v="head">Cabeza primero</button><button data-v="feet">Pies primero</button></div>
+            <div class="subhead">Brazos</div>
+            <div class="seg" id="segArms"><button data-v="down">A los lados</button><button data-v="up">Sobre la cabeza</button></div>
+            <label class="row check"><input type="checkbox" id="chkHolder"> Soporte de cabeza</label>
+            <label class="row check"><input type="checkbox" id="chkStrap"> Cinta de sujeción</label>
+            <label class="row check"><input type="checkbox" id="chkBreath" checked> Instrucciones respiratorias automáticas («inspire y no respire»)</label>
+            <div class="subhead">Protectores de bismuto</div>
+            <div class="row" id="shieldRow"><label><input type="checkbox" data-shield="ojos"> Ojos</label><label><input type="checkbox" data-shield="tiroides"> Tiroides</label><label><input type="checkbox" data-shield="mamas"> Mamas</label></div>
+            <div class="subhead">Centrado</div>
+            <label class="row check"><input type="checkbox" id="chkLasers"> Encender láseres</label>
+            <div class="travel"><span class="lbl">Altura mesa</span><input type="range" id="rngHeight" min="-80" max="80" step="1"><span id="lblHeight"></span></div>
+            <div class="laser-state" id="laserState"></div>
+            <div class="row"><select id="selLandmark"></select><button id="btnZero">Marcar cero</button></div>
+            <p class="hint" id="zeroState">Sin cero marcado.</p>
+            <div class="row"><button class="primary" id="btnIso">Llevar al isocentro</button></div>
+          </section>
+          <p class="room-help">Arrastre para girar · rueda para acercar · con gafas de RV use «ENTER VR»</p>
+        </div>
+      </section>
+
+      <!-- 3. Topograma y planificación -->
+      <section class="step" data-step="topograma">
+        <div class="cols2 topo-cols">
+          <section class="panel">
+            <h2>Topograma</h2>
+            <div class="params">
+              <div class="param"><label>Vista</label><select id="topoView"><option value="AP">AP</option><option value="LAT">Lateral</option></select></div>
+              <div class="param"><label>Inicio (mm)</label><input type="number" id="topoStart" step="10"></div>
+              <div class="param"><label>Longitud (mm)</label><input type="number" id="topoLen" step="10" min="100" max="1000"></div>
+            </div>
+            <p class="hint">Inicio relativo al cero marcado con el láser (negativo = hacia la cabeza).</p>
+            <div class="row"><button class="primary" id="btnTopo">Adquirir topograma</button><span class="muted" id="topoInfo"></span></div>
+            <h2 class="mt">Planificación</h2>
+            <div class="params">
+              <div class="param"><label>Inicio rango</label><input type="number" id="rangeStart" step="1"></div>
+              <div class="param"><label>Fin rango</label><input type="number" id="rangeEnd" step="1"></div>
+              <div class="param"><label>Longitud</label><output id="rangeLen"></output></div>
+            </div>
+            <p class="hint">Arrastre las líneas amarillas sobre el topograma (o el bloque completo). Las posiciones están en mm de mesa desde el cero.</p>
+          </section>
+          <section class="panel topo-panel">
+            <div class="series-tabs" id="topoTabs"></div>
+            <div class="topo-view"><canvas id="topoCanvas"></canvas><div class="empty" id="topoEmpty">Adquiera un topograma</div></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 4. Protocolo -->
+      <section class="step" data-step="protocolo">
+        <section class="panel">
+          <h2>Protocolo</h2>
+          <div class="row"><select id="selProtocol"></select><button id="btnLoadProtocol">Cargar</button></div>
+          <div class="params mt" id="params"></div>
+          <div class="metrics" id="metrics"></div>
+          <div id="doseWarn" class="hint"></div>
+          <h2 class="mt">Series</h2>
+          <div id="seriesPlan"></div>
+        </section>
+      </section>
+
+      <!-- 5. Contraste -->
+      <section class="step" data-step="contraste">
+        <div class="cols2">
+          <section class="panel">
+            <h2>Inyector</h2>
+            <div class="params" id="injParams"></div>
+            <div class="metrics" id="injMetrics"></div>
+            <div id="injWarn" class="hint"></div>
+          </section>
+          <section class="panel">
+            <h2>Curvas de realce previstas <small id="curveNote"></small></h2>
+            <canvas id="curveCanvas" class="curve"></canvas>
+            <div class="legend" id="curveLegend"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 6. Adquisición -->
+      <section class="step" data-step="adquisicion">
+        <div class="cols2">
+          <section class="panel">
+            <h2>Antes de empezar</h2>
+            <ul class="checklist" id="preflight"></ul>
+            <div class="row"><button id="btnAirCal" title="Control de calidad: mide el haz sin paciente para igualar la ganancia de todos los canales">Calibración en aire del detector</button><span class="small" id="airCalInfo"></span></div>
+            <div class="run mt"><button class="primary" id="btnScan">Iniciar adquisición</button><div class="progress"><div id="scanBar"></div><span id="scanText">Listo</span></div></div>
+            <div class="clock" id="clock"></div>
+            <ul class="log" id="scanLog" aria-live="polite" aria-label="Registro de la adquisición"></ul>
+          </section>
+          <section class="panel">
+            <h2>Seguimiento del bolo <small id="btNote"></small></h2>
+            <div class="bt">
+              <div class="viewport small-vp"><canvas id="btCanvas"></canvas><div class="empty" id="btEmpty">Solo para series con seguimiento del bolo</div></div>
+              <canvas id="btCurve" class="curve"></canvas>
+            </div>
+            <p class="hint" id="btHint"></p>
+          </section>
+        </div>
+      </section>
+
+      <!-- 7. Visor -->
+      <section class="step" data-step="visor">
+        <section class="panel viewer-panel">
+          <div class="series-tabs" id="seriesTabs"></div>
+          <div class="viewer-bar">
+            <div class="seg views" id="segView"><button data-v="axial">Axial</button><button data-v="coronal">Coronal</button><button data-v="sagittal">Sagital</button><button data-v="oblique">Oblicua</button><button data-v="curved">Curva</button><button data-v="mip3d">3D MIP</button><button data-v="vr3d">3D VR</button></div>
+            <div class="seg" id="segWindow"></div>
+            <div class="seg" id="segTool"><button data-v="wl">Ventana</button><button data-v="roi">ROI</button><button data-v="dist">Distancia</button><button data-v="scroll" title="Arrastre arriba/abajo para pasar cortes (útil en tableta)">Cortes</button><button data-v="oblique" title="En axial: clic para fijar el centro del plano oblicuo y arrastre para girarlo">Plano oblicuo</button><button data-v="curve" title="En axial: clic para añadir puntos del trayecto (puede cambiar de corte entre clics)">Trayecto</button><button id="btnClearCurve" title="Borrar el trayecto curvo">✕ trayecto</button></div>
+            <select id="selSlab" title="Proyección de máxima intensidad"><option value="0">Sin MIP</option><option value="10">MIP 10 mm</option><option value="20">MIP 20 mm</option><option value="40">MIP 40 mm</option></select>
+            <select id="selPalette" title="Paleta de los mapas de color" aria-label="Paleta de los mapas de color"><option value="rainbow">Paleta arcoíris</option><option value="viridis">Paleta viridis (daltonismo)</option></select>
+            <button id="btnCalcium" title="Puntuación de calcio coronario de Agatston (serie sin contraste)">Calcio (Agatston)</button>
+            <button id="btnDicom" title="Descargar la serie en DICOM (ZIP)">Exportar DICOM</button>
+          </div>
+          <div class="viewport">
+            <canvas id="viewCanvas"></canvas>
+            <div class="overlay tl" id="ovTL"></div><div class="overlay tr" id="ovTR"></div>
+            <div class="overlay bl" id="ovBL"></div><div class="overlay br" id="ovBR"></div>
+            <div class="empty" id="viewEmpty">Sin imágenes</div>
+          </div>
+          <div class="row viewer-controls"><label>Corte <input type="range" id="rngSlice" min="0" max="0" value="0"></label><span class="muted small">Rueda: cortes · Ctrl+rueda: zoom · arrastrar: ventana/nivel · doble clic: restablecer</span></div>
+          <div class="recon-panel" id="biopsyPanel" hidden>
+            <b>Biopsia guiada por TC</b> <span class="muted small">elija el corte del nódulo en axial; las coordenadas son las del paciente</span>
+            <div class="recon-row">
+              <button id="bxEntry">1. Marcar entrada en la piel</button>
+              <button id="bxTarget">2. Marcar objetivo</button>
+              <label>Avance <input type="number" id="bxStep" value="20" min="2" max="80" step="1"> mm</label>
+              <button class="primary" id="bxAdvance">3. Avanzar aguja</button>
+              <button id="bxControl">Corte de control</button>
+              <button id="bxReplan" title="Nuevo objetivo desde la punta actual">Corregir dirección</button>
+              <button id="bxSample">4. Tomar la muestra</button>
+            </div>
+            <div class="small" id="bxInfo" aria-live="polite"></div>
+          </div>
+          <div class="recon-panel" id="reconPanel">
+            <b>Reconstruir desde los datos brutos</b> <span class="muted small">(sin irradiar de nuevo)</span>
+            <div class="recon-row">
+              <label>Filtro <select id="rcKernel"></select></label>
+              <label>Grosor <select id="rcThk"><option>0.625</option><option>1.25</option><option>2.5</option><option>3</option><option>5</option></select></label>
+              <label>DFOV <input type="number" id="rcDfov" min="150" max="500" step="10"></label>
+              <label>Iterativa <select id="rcIr"><option value="0">0 %</option><option value="20">20 %</option><option value="40">40 %</option><option value="60">60 %</option><option value="80">80 %</option><option value="100">100 %</option></select></label>
+              <label><input type="checkbox" id="rcMar"> MAR</label>
+              <label title="FBP: retroproyección filtrada (rápida). SART: reconstrucción algebraica iterativa (menos ruido, más lenta)">Algoritmo <select id="rcAlg"><option value="fbp">FBP</option><option value="sart">SART iterativa</option></select></label>
+              <label id="deLbl">Doble energía <select id="deOut"></select> <button id="btnDe">Generar</button></label>
+              <label id="rcPhaseLbl">Fase ECG <select id="rcPhase"><option>35</option><option>40</option><option>45</option><option>65</option><option>70</option><option>75</option><option>80</option></select> %</label>
+              <button class="primary" id="btnRecon">Reconstruir</button>
+              <span class="muted small" id="rcMsg"></span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- 8. Finalizar -->
+      <section class="step" data-step="finalizar">
+        <div class="cols2">
+          <section class="panel">
+            <h2>Lectura de las imágenes</h2>
+            <p id="qText"></p>
+            <div class="cases" id="qOptions"></div>
+          </section>
+          <section class="panel">
+            <h2>Despacho del paciente</h2>
+            <label class="row check"><input type="checkbox" id="chkSend"> Enviar las imágenes al PACS y verificar la llegada</label>
+            <label class="row check"><input type="checkbox" id="chkHydration"> Indicar hidratación oral (si recibió contraste)</label>
+            <label class="row check"><input type="checkbox" id="chkObservation"> Vigilar 30 min y retirar el catéter después (si recibió contraste)</label>
+            <h2 class="mt">Dosis del estudio</h2>
+            <table class="rubric" id="doseTable"></table>
+            <div class="row end mt"><button class="primary" id="btnFinish">Finalizar y ver informe</button></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <aside class="aside">
+      <section class="panel">
+        <h2>Guía <small id="guideMode"></small></h2>
+        <div id="guide" class="guide"></div>
+      </section>
+      <section class="panel">
+        <h2>Dosis acumulada</h2>
+        <div class="metrics two"><div class="metric"><div class="k">DLP total</div><div class="v" id="dlpTotal">0</div></div><div class="metric"><div class="k">Dosis efectiva</div><div class="v" id="effTotal">0</div></div></div>
+      </section>
+      <section class="panel grow log-panel">
+        <h2>Registro</h2>
+        <ul class="log" id="log" aria-live="polite" aria-label="Registro de acciones"></ul>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="startDlg" class="wide">
+    <div class="inst-head"><img src="img/areandina.png" alt="Areandina"><div><h2>OpenTC Sim</h2><p class="inst-credit">Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</p><p class="small">Fundación Universitaria del Área Andina · Bogotá</p></div></div>
+    <p class="small">Simulador libre de tomografía computarizada para estudiantes de radiología e imágenes diagnósticas. Pacientes y anatomía ficticios. No apto para uso clínico.</p>
+    <div class="field"><label>Nombre</label><input type="text" id="studentName" maxlength="60" placeholder="Su nombre"></div>
+    <div class="subhead">Modo</div>
+    <div class="seg" id="segMode"><button data-v="practica" class="active">Práctica guiada (con pistas)</button><button data-v="evaluacion">Evaluación (sin pistas, con nota)</button></div>
+    <div class="row"><button id="btnStartTour">▶ Tutorial guiado (primera vez)</button><span class="small">Un TC de cráneo paso a paso, con explicaciones.</span></div>
+    <div class="subhead">Casos clínicos <label class="small" style="margin-left:8px;cursor:pointer;text-decoration:underline">Importar casos del docente (JSON)<input type="file" id="importCases" accept=".json,application/json" hidden></label> · <a class="small" href="editor.html">Editor de casos</a></div>
+    <div class="cases" id="caseList"></div>
+    <div class="subhead">Casos aleatorios <span class="small">(paciente y lesión distintos cada vez; el número permite repetir el mismo caso)</span></div>
+    <div class="cases" id="randomList"></div>
+    <div class="subhead">Procedimientos</div>
+    <div class="cases"><label class="case"><input type="radio" name="case" value="proc-biopsia"><span><b>Biopsia pulmonar guiada por TC</b><br><span class="muted">Planifique la trayectoria, avance la aguja con cortes de control y vigile las complicaciones.</span></span></label></div>
+    <div class="subhead">Turno en el servicio <span class="small">(lista de trabajo con pacientes que llegan durante la jornada: usted decide el orden)</span></div>
+    <div class="row"><button id="btnShift">Empezar un turno</button><label class="small">Pacientes <input type="number" id="shiftN" min="3" max="10" value="5" style="width:56px"></label></div>
+    <div class="subhead">Casos de artefactos <span class="small">(el paciente ya está escaneado: identifique, corrija y repita)</span></div>
+    <div class="cases" id="artifactList"></div>
+    <div class="field" id="classRow"><label>Código de clase</label><input type="text" id="classCode" maxlength="6" placeholder="Opcional (servidor de clase)"></div>
+    <p class="small" id="classMsg"></p>
+    <p class="small">Recursos: <a href="atlas.html">Atlas anatómico</a> · <a href="preguntas.html">Banco de preguntas</a> · <a href="ecoe.html">ECOE (docente)</a> · <a href="calibracion.html">Calibración con su tomógrafo</a> · <a href="sus.html">Encuesta de usabilidad</a> · <a href="PRIVACIDAD.md">Privacidad</a> · <a href="LICENSE">Licencia MIT</a>. Simulador educativo: no es un dispositivo médico.</p>
+    <h3>Historial en este navegador</h3>
+    <ul class="history" id="history"></ul>
+    <div class="row end"><button class="primary" id="btnStart">Empezar</button></div>
+  </dialog>
+
+  <dialog id="reportDlg" class="wide">
+    <div class="dlg-brand"><img src="img/areandina.png" alt="Areandina"><div><h2>Informe de evaluación</h2><span class="small">Laboratorios de Salud y Deporte Bogotá · Facultad de Ciencias de la Salud y del Deporte</span></div></div>
+    <div id="reportBody"></div>
+    <div class="row end no-print"><button id="btnJson">Descargar JSON</button><button id="btnCsv">Descargar CSV</button><button id="btnPrint" title="Informe en A4 con el logo institucional y espacio para firmas">Imprimir / PDF</button><form method="dialog"><button class="primary">Cerrar</button></form></div>
+  </dialog>
+
+  <dialog id="settingsDlg" class="wide">
+    <h2>Ajustes</h2>
+    <h3>Voz</h3>
+    <label class="row check"><input type="checkbox" id="setVoice"> Instrucciones habladas al paciente («inspire y no respire», avisos del contraste)</label>
+    <p class="small" id="setVoiceInfo"></p>
+    <h3>Analítica de aprendizaje (xAPI)</h3>
+    <p class="small">Envía cada acción del examen a un LRS (Learning Locker, SCORM Cloud, Moodle con logstore xAPI…). Sin LRS, las declaraciones se guardan en este navegador y se pueden exportar.</p>
+    <label class="row check"><input type="checkbox" id="setXapiOn"> Enviar al LRS</label>
+    <div class="grid-set">
+      <label>Endpoint <input type="text" id="setXapiUrl" placeholder="https://lrs.ejemplo.edu/data/xAPI"></label>
+      <label>Clave <input type="text" id="setXapiKey" autocomplete="off"></label>
+      <label>Secreto <input type="password" id="setXapiSecret" autocomplete="off"></label>
+    </div>
+    <div class="row"><button id="setXapiFlush">Enviar ahora</button><button id="setXapiExport">Exportar declaraciones (JSON)</button><span class="small" id="setXapiInfo"></span></div>
+    <h3>Física de la simulación</h3>
+    <label class="row check"><input type="checkbox" id="setPhysAdv"> Física avanzada: espectro policromático, haz en abanico, dispersión y corrección con agua (más realista; solo CPU, ≈ 2× más lento)</label>
+    <div class="grid-set" id="setPhysOpts">
+      <label>Dispersión <select id="setScatter"><option value="grid">Con rejilla y corrección (equipo real)</option><option value="nocorr">Sin corrección (didáctico)</option><option value="nogrid">Sin rejilla ni corrección (didáctico)</option><option value="off">Sin dispersión</option></select></label>
+      <label>Endurecimiento por hueso <select id="setBoneBH"><option value="on">Corregido en dos pasadas</option><option value="off">Sin corregir (didáctico)</option></select></label>
+    </div>
+    <p class="small">Con física avanzada las HU pueden variar unos ±10 HU respecto al modo estándar, como entre tomógrafos reales.</p>
+    <h3>PACS</h3>
+    <p class="small" id="setPacsInfo">Comprobando…</p>
+    <div class="row end"><button class="primary" id="setSave">Guardar</button><form method="dialog"><button>Cerrar</button></form></div>
+  </dialog>
+
+  <dialog id="alertDlg">
+    <h2 id="alertTitle"></h2>
+    <div id="alertBody"></div>
+    <div class="row end" id="alertBtns"></div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+  <script type="module">import { initI18n } from './js/i18n.js'; initI18n();</script>
+</body>
+</html>

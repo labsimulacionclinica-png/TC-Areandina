@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ECOE · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <style>
+    body { overflow: auto; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 8px; display: grid; gap: 8px; }
+    .st { display: grid; grid-template-columns: 1fr 90px auto; gap: 6px; align-items: center; margin-bottom: 4px; }
+    .st select { min-width: 0; }
+    textarea { width: 100%; background: #0f171c; color: var(--text); border: 1px solid var(--line); border-radius: 4px; font-family: monospace; font-size: 12px; }
+    .topics { display: flex; flex-wrap: wrap; gap: 8px; }
+    .verdict { font-size: 18px; font-weight: 700; }
+    .verdict.ok { color: var(--ok); } .verdict.bad { color: var(--err); }
+    @media (max-width: 640px) { .st { grid-template-columns: 1fr 70px auto; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>ECOE por estaciones</small></div>
+    <div class="patient-strip">Para el docente: diseñe la evaluación y comparta el enlace.</div>
+    <a class="toplink" href="teacher.html">Panel docente</a>
+  </header>
+  <main class="wrap">
+    <section class="panel">
+      <h2>1. Estaciones</h2>
+      <div class="row"><label class="muted" style="flex:1">Título <input type="text" id="title" maxlength="120" value="ECOE de tomografía computarizada" style="width:100%"></label></div>
+      <div id="stations" class="mt"></div>
+      <div class="row"><button id="btnAdd">+ Añadir estación</button></div>
+    </section>
+    <section class="panel">
+      <h2>2. Cuestionario teórico (opcional)</h2>
+      <div class="row"><label class="muted">Preguntas <input type="number" id="qn" min="0" max="40" value="10"></label>
+        <label class="muted">Minutos <input type="number" id="qmin" min="2" max="60" value="10"></label></div>
+      <div class="topics" id="topics"></div>
+    </section>
+    <section class="panel">
+      <h2>3. Criterios y enlace</h2>
+      <div class="row"><label class="muted">Media mínima para aprobar (%) <input type="number" id="pass" min="0" max="100" value="60"></label>
+        <label class="muted">Mínimo por estación (%) <input type="number" id="minSt" min="0" max="100" value="40"></label></div>
+      <div class="row"><button class="primary" id="btnLink">Generar enlace</button><button id="btnCopy" disabled>Copiar</button><a id="lnkTry" target="_blank" rel="noopener" hidden>Probar</a></div>
+      <textarea id="link" rows="3" readonly placeholder="El enlace aparecerá aquí"></textarea>
+      <p class="small">El enlace contiene toda la configuración: funciona sin servidor (GitHub Pages, Netlify o un archivo local servido por HTTP). Los estudiantes ven los casos en modo evaluación.</p>
+    </section>
+    <section class="panel">
+      <h2>Verificar certificado</h2>
+      <p class="small">Pegue el código completo que aparece al pie del certificado del estudiante.</p>
+      <textarea id="code" rows="3"></textarea>
+      <div class="row"><button id="btnVerify">Verificar</button></div>
+      <div id="verify"></div>
+      <p class="small">La huella SHA-256 detecta códigos alterados o mal copiados, pero no es una firma digital: para calificaciones oficiales use además el servidor de clase o la plataforma (SCORM/xAPI).</p>
+    </section>
+  </main>
+  <script type="module">
+    import { initI18n } from './js/i18n.js';
+    import { allCases } from './js/cases.js';
+    import { ARTIFACT_CASES } from './js/artifacts.js';
+    import { RANDOM_TEMPLATES } from './js/randomcase.js';
+    import { TOPICS } from './js/questions.js';
+    import { configToUrl, verifyCertificate } from './js/ecoe.js';
+    initI18n();
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const opts = [
+      ['Casos clínicos', allCases().filter((c) => !c.procedure).map((c) => [c.key, c.title])],
+      ['Casos aleatorios', Object.entries(RANDOM_TEMPLATES).map(([k, t]) => [`rand-${k}`, t.label])],
+      ['Procedimientos', [['proc-biopsia', 'Biopsia pulmonar guiada por TC']]],
+      ['Artefactos', ARTIFACT_CASES.map((a) => [a.key, a.title])],
+    ].map(([g, l]) => `<optgroup label="${g}">${l.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join('')}</optgroup>`).join('');
+    function addStation(key, minutes = 15) {
+      const d = document.createElement('div'); d.className = 'st';
+      d.innerHTML = `<select aria-label="Caso">${opts}</select><input type="number" min="2" max="60" value="${minutes}" aria-label="Minutos"><button aria-label="Quitar estación">✕</button>`;
+      if (key) d.querySelector('select').value = key;
+      d.querySelector('button').onclick = () => d.remove();
+      $('stations').append(d);
+    }
+    addStation('craneo-hic', 12); addStation('rand-pulmon', 15); addStation(ARTIFACT_CASES[0]?.key, 10);
+    $('btnAdd').onclick = () => addStation();
+    $('topics').innerHTML = Object.entries(TOPICS).map(([k, v]) => `<label><input type="checkbox" value="${k}"> ${v}</label>`).join('');
+    $('btnLink').onclick = () => {
+      const cfg = {
+        title: $('title').value.trim(),
+        stations: [...$('stations').children].map((d) => ({ key: d.querySelector('select').value, minutes: +d.querySelector('input').value })),
+        quiz: +$('qn').value > 0 ? { n: +$('qn').value, minutes: +$('qmin').value, tags: [...$('topics').querySelectorAll('input:checked')].map((i) => i.value) } : null,
+        pass: +$('pass').value, minStation: +$('minSt').value,
+      };
+      try {
+        const url = new URL(configToUrl(cfg), location.href).href;
+        $('link').value = url; $('btnCopy').disabled = false; $('lnkTry').href = url; $('lnkTry').hidden = false;
+      } catch (e) { $('link').value = e.message; }
+    };
+    $('btnCopy').onclick = () => navigator.clipboard?.writeText($('link').value);
+    $('btnVerify').onclick = async () => {
+      const r = await verifyCertificate($('code').value);
+      const p = r.payload;
+      $('verify').innerHTML = !p ? '<p class="verdict bad">Código ilegible.</p>'
+        : `<p class="verdict ${r.valid ? 'ok' : 'bad'}">${r.valid ? 'Código válido' : 'El código fue modificado'}</p>
+           <p>${esc(p.student)} · ${esc(p.title)} · ${new Date(p.date).toLocaleString('es')} · <b>${p.overall} %</b> · ${p.passed ? 'aprobado' : 'no aprobado'}</p>
+           <ul>${p.results.map((x) => `<li>${esc(x.title)}: ${x.percent} %${x.timeout ? ' (tiempo agotado)' : ''}</li>`).join('')}</ul>`;
+    };
+  </script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>

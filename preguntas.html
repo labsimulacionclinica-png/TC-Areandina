@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Banco de preguntas · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <style>
+    body { overflow: auto; }
+    .quiz { max-width: 860px; margin: 0 auto; padding: 8px; display: grid; gap: 8px; }
+    .topics { display: flex; flex-wrap: wrap; gap: 8px; }
+    .topics label { display: flex; gap: 4px; align-items: center; }
+    .qcard { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; background: var(--panel-2); }
+    .qcard h3 { margin: 0 0 8px; font-size: 14px; line-height: 1.4; }
+    .qcard .opts { display: grid; gap: 4px; }
+    .qcard .opts label { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
+    .qcard .opts label:hover { border-color: var(--line); }
+    .qcard .opts label.right { border-color: var(--ok); color: var(--ok); }
+    .qcard .opts label.wrong { border-color: var(--err); color: var(--err); }
+    .qcard .exp { margin-top: 8px; padding: 6px 8px; border-left: 3px solid var(--accent); background: #0f171c; font-size: 13px; }
+    .tagchip { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 1px 7px; margin-right: 4px; }
+    .big { font-size: 40px; font-weight: 700; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>banco de preguntas</small></div>
+    <div class="patient-strip" id="strip">Autoevaluación de física, dosis, protección, contraste y técnica.</div>
+    <a class="toplink" href="index.html">Volver al simulador</a>
+  </header>
+  <main class="quiz">
+    <section class="panel" id="setup">
+      <h2>Configurar el cuestionario</h2>
+      <div class="row"><label class="muted">Nombre o código <input type="text" id="student" maxlength="40" placeholder="EST-01"></label>
+        <label class="muted">Preguntas <input type="number" id="n" min="3" max="60" value="10"></label></div>
+      <p class="small">Temas (ninguno marcado = todos):</p>
+      <div class="topics" id="topics"></div>
+      <div class="row end"><button class="primary" id="btnStart">Empezar</button></div>
+    </section>
+    <section id="questions" hidden></section>
+    <section class="panel" id="result" hidden>
+      <h2>Resultado</h2>
+      <div class="big" id="score"></div>
+      <p class="small" id="byTopic"></p>
+      <div class="row"><button id="btnRetry">Repetir con otras preguntas</button><button id="btnWrong">Repasar solo las falladas</button></div>
+    </section>
+  </main>
+  <script type="module" src="js/quiz.js"></script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>

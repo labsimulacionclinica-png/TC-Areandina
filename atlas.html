@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas anatómico · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/ct.css">
+  <style>
+    body { overflow: auto; }
+    .atlas { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 8px; padding: 8px; }
+    .views { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 6px; }
+    .vw { position: relative; background: #000; border: 1px solid var(--line); border-radius: 4px; aspect-ratio: 1 / 1; overflow: hidden; }
+    .vw canvas { width: 100%; height: 100%; display: block; cursor: crosshair; image-rendering: auto; }
+    .vw .lbl { position: absolute; left: 6px; top: 4px; font-size: 11px; color: var(--muted); pointer-events: none; }
+    .vw .ori { position: absolute; font-size: 10px; color: #8aa; pointer-events: none; }
+    .tip { position: fixed; pointer-events: none; background: #0f171cee; border: 1px solid var(--line); border-radius: 4px; padding: 3px 7px; font-size: 12px; z-index: 50; }
+    .list { max-height: 62vh; overflow: auto; font-size: 13px; }
+    .list details { margin-bottom: 4px; }
+    .list summary { cursor: pointer; color: var(--muted); }
+    .list button { display: block; width: 100%; text-align: left; padding: 3px 6px; border: 1px solid transparent; background: none; }
+    .list button.sel { border-color: var(--accent); color: var(--accent); }
+    .info { min-height: 52px; }
+    .quiz-opts { display: grid; gap: 4px; margin-top: 6px; }
+    .quiz-opts button.right { border-color: var(--ok); color: var(--ok); }
+    .quiz-opts button.wrong { border-color: var(--err); color: var(--err); }
+    .progress-atlas { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+    .progress-atlas div { height: 100%; width: 0; background: var(--accent); }
+    @media (max-width: 1000px) { .atlas { grid-template-columns: 1fr; } .views { grid-template-columns: 1fr 1fr; } .views .vw:first-child { grid-column: 1 / -1; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>atlas anatómico</small></div>
+    <div class="patient-strip">Anatomía del fantoma del simulador en vóxeles de 2,5 × 2,5 × 4 mm.</div>
+    <a class="toplink" href="index.html">Volver al simulador</a>
+  </header>
+  <main class="atlas">
+    <section class="panel">
+      <div class="row">
+        <label class="muted">Paciente <select id="selPatient">
+          <option value="M">Hombre adulto (75 kg)</option><option value="F">Mujer adulta (65 kg)</option><option value="obeso">Paciente con obesidad (120 kg)</option>
+          <option value="nino">Niño de 5 años</option><option value="embarazo">Embarazada de 24 semanas</option></select></label>
+        <label class="muted">Ventana <select id="selWin"><option value="soft">Partes blandas</option><option value="brain">Cerebro</option><option value="lung">Pulmón</option><option value="bone">Hueso</option></select></label>
+        <label class="row check"><input type="checkbox" id="chkColor" checked> Colorear por sistema</label>
+      </div>
+      <div class="progress-atlas mt" id="prog"><div></div></div>
+      <div class="views mt">
+        <div class="vw"><canvas id="cvAx" width="400" height="400" aria-label="Corte axial"></canvas><span class="lbl" id="lblAx">Axial</span><span class="ori" style="left:4px;top:50%">D</span><span class="ori" style="right:4px;top:50%">I</span></div>
+        <div class="vw"><canvas id="cvCo" width="400" height="400" aria-label="Corte coronal"></canvas><span class="lbl" id="lblCo">Coronal</span></div>
+        <div class="vw"><canvas id="cvSa" width="400" height="400" aria-label="Corte sagital"></canvas><span class="lbl" id="lblSa">Sagital</span></div>
+      </div>
+      <p class="small">Clic: seleccionar la estructura y cruzar los cortes · rueda: avanzar cortes · D = derecha del paciente. Las estructuras son formas geométricas simplificadas (no es un atlas de anatomía real).</p>
+      <div class="info panel" id="info">Pase el ratón sobre la imagen.</div>
+    </section>
+    <aside class="panel">
+      <div class="seg" id="segMode"><button data-v="explore" class="active">Explorar</button><button data-v="quiz">Preguntas</button></div>
+      <div id="explore">
+        <input type="search" id="search" placeholder="Buscar estructura" style="width:100%;margin:8px 0">
+        <div class="list" id="list"></div>
+      </div>
+      <div id="quiz" hidden>
+        <p class="small">Identifique la estructura marcada con la cruz.</p>
+        <div class="quiz-opts" id="qOpts"></div>
+        <p id="qFeedback" class="small"></p>
+        <div class="row"><button class="primary" id="qNext">Siguiente</button><span class="small" id="qScore"></span></div>
+      </div>
+    </aside>
+  </main>
+  <div class="tip" id="tip" hidden></div>
+  <script type="module" src="js/atlas.js"></script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>

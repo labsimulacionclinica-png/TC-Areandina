@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel docente · OpenTC Sim</title>
+  <meta name="theme-color" content="#0a0f12">
+  <link rel="icon" href="img/areandina.png" type="image/png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/teacher.css">
+</head>
+<body class="teacher">
+  <header class="topbar">
+    <div class="brand"><img class="inst-logo" src="img/areandina.png" alt="Areandina"> OpenTC Sim <small>panel del docente</small></div>
+    <div class="patient-strip" id="sourceStrip">Sin datos cargados</div>
+    <a class="toplink" href="index.html">Volver al simulador</a>
+  </header>
+
+  <main class="t-main">
+    <section class="t-sources">
+      <section class="panel" id="serverPanel">
+        <h2>Clase en el servidor</h2>
+        <p class="small" id="serverState">Comprobando el servidor…</p>
+        <div class="t-forms">
+          <form id="formCreate" class="t-form">
+            <h3>Crear clase</h3>
+            <label>Nombre <input name="name" required maxlength="80" placeholder="RM · Grupo A"></label>
+            <label>PIN del docente <input name="pin" type="password" required minlength="4" autocomplete="new-password"></label>
+            <button class="primary">Crear</button>
+            <p class="t-code" id="newCode" hidden></p>
+          </form>
+          <form id="formOpen" class="t-form">
+            <h3>Abrir clase</h3>
+            <label>Código <input name="code" required maxlength="6" autocomplete="off" placeholder="ABC234"></label>
+            <label>PIN <input name="pin" type="password" required autocomplete="current-password"></label>
+            <div class="row"><button class="primary">Cargar resultados</button><button type="button" id="btnRefresh" disabled>Actualizar</button></div>
+            <label class="row small"><input type="checkbox" id="autoRefresh"> Actualizar cada 30 s</label>
+          </form>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Importar archivos</h2>
+        <p class="small">Sin servidor (por ejemplo, en GitHub Pages): los estudiantes descargan el informe en JSON y usted lo arrastra aquí. Los archivos no salen de este navegador.</p>
+        <label class="t-drop" id="drop">
+          <input type="file" id="files" accept=".json,application/json" multiple>
+          <span>Arrastre aquí los informes JSON o haga clic para elegirlos</span>
+        </label>
+        <p class="small" id="importMsg"></p>
+      </section>
+    </section>
+
+    <section class="panel" id="livePanel" hidden>
+      <h2>En vivo <small id="liveInfo"></small></h2>
+      <p class="small">Estudiantes que trabajan ahora con el código de esta clase. Se actualiza cada 5 s mientras la página está abierta.</p>
+      <div class="t-table-wrap">
+        <table class="rubric t-table">
+          <thead><tr><th>Estudiante</th><th>Caso</th><th>Paso</th><th class="num">DLP</th><th>Aviso</th><th class="num">Nota</th><th>Hace</th></tr></thead>
+          <tbody id="liveRows"></tbody>
+        </table>
+      </div>
+      <p class="small"><a href="ecoe.html">Diseñar un ECOE por estaciones</a> · <a href="preguntas.html">Banco de preguntas</a></p>
+    </section>
+
+    <section class="panel t-filters">
+      <label>Caso <select id="fCase"><option value="">Todos</option></select></label>
+      <label>Estudiante <input type="search" id="fStudent" placeholder="Buscar"></label>
+      <button id="btnCsv" disabled>Descargar CSV</button>
+      <button id="btnClear" class="ghost" disabled>Vaciar</button>
+    </section>
+
+    <section class="t-tiles" id="tiles"></section>
+
+    <section class="t-charts">
+      <section class="panel">
+        <h2>Promedio por caso <small>% · 0–100</small></h2>
+        <div class="t-bars" id="chartCases"></div>
+      </section>
+      <section class="panel">
+        <h2>Criterios más débiles <small>% de puntos obtenidos · de menor a mayor</small></h2>
+        <div class="t-bars" id="chartCriteria"></div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <h2>Intentos <small id="countLabel"></small></h2>
+      <div class="t-table-wrap">
+        <table class="rubric t-table">
+          <thead><tr><th>Estudiante</th><th>Caso</th><th>Fecha</th><th class="num">Puntuación</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="t-tip" id="tip" hidden></div>
+
+  <dialog id="detail" class="wide">
+    <h2>Informe</h2>
+    <div id="detailBody"></div>
+    <form method="dialog" class="row end"><button class="primary">Cerrar</button></form>
+  </dialog>
+
+  <script type="module" src="js/teacher.js"></script>
+  <script type="module">import { initI18n } from './js/i18n.js'; initI18n();</script>
+  <footer class="inst-footer"><img src="img/areandina.png" alt="Areandina"><span><b>Desarrollado por los Laboratorios de Salud y Deporte Bogotá de la Facultad de Ciencias de la Salud y del Deporte</b><br>Fundación Universitaria del Área Andina · Simulador educativo OpenTC Sim · <a href="manual.html">Manual de uso</a></span></footer>
+</body>
+</html>
+
